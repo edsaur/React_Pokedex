@@ -1,13 +1,112 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@font-face {
+  font-family: "Pokemon Solid";
+  src: url('Pokemon\ Solid.ttf');
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+@font-face {
+  font-family: "Pokemon Hallow";
+  src: url('Pokemon\ Hollow.ttf');
 }
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f0f0f0;
+  margin: 0;
+  padding: 0;
+}
+.logo {
+  color: #ffcb05; /* Pokémon Yellow */
+  font-size: 2.5rem;
+  text-shadow: 
+    2px 2px 0 #3d7dca,  /* Blue shadow */
+    4px 4px 0 #3d7dca,  /* Double blue shadow to mimic thickness */
+    6px 6px 5px rgba(0, 0, 0, 0.2); /* Slight black shadow for depth */
+}
+
+.header {
+  font-family: "Pokemon Solid", Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg, #2a579a, #ffcb05); /* Gradient from Pokémon blue to Pokémon yellow */
+  text-align: center;
+  padding: 1px;
+  border-bottom: 5px solid #3d7dca; /* Pokémon blue border */
+  color: #ffffff; /* White text to contrast with gradient */
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-around; /* Space out the items evenly */
+  background-color: #ffcb05; /* Pokémon yellow */
+  padding: 10px 0;
+  border-bottom: 2px solid #3d7dca; /* Pokémon blue border */
+  border-top: 2px solid #3d7dca; /* Added top border for emphasis */
+}
+
+.navbar ul {
+  list-style: none; /* Remove bullet points */
+  display: flex; /* Display list items in a row */
+  margin: 0;
+  padding: 0;
+  width: 100%; /* Ensure the navbar takes up full width */
+}
+
+.navbar li {
+  flex: 1; /* Ensure each list item takes up equal space */
+  text-align: center; /* Center text horizontally */
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #3d7dca; /* Pokémon blue */
+  cursor: pointer; /* Change cursor on hover */
+  padding: 10px 0; /* Adjust padding for a larger clickable area */
+  border-left: 1px solid black; /* Black border between items */
+}
+
+.navbar li:first-child {
+  border-left: none; /* Remove the border from the first item */
+}
+
+.navbar li:hover {
+  color: #000; /* White text on hover */
+}
+
+.navbar li.active {
+  color: red; /* Active item color */
+}
+
+.pokemonList {
+  display: grid; /* Use grid for layout */
+  grid-template-columns: repeat(4, 1fr); /* Four columns */
+  gap: 20px; /* Space between cards */
+  padding: 20px; /* Padding around the whole list */
+  justify-items: center; /* Center items in their grid cells */
+}
+
+.pokemonCard {
+  background-color: #ffcb05; /* Pokémon yellow */
+  color: #3d7dca; /* Pokémon blue */
+  border: 2px solid #3d7dca; /* Pokémon blue border */
+  border-radius: 10px; /* Rounded corners */
+  padding: 15px 20px; /* Padding inside the card */
+  width: 150px; /* Fixed width for the card */
+  text-align: center; /* Center the text */
+  font-weight: bold; /* Bold text for Pokémon names */
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  transition: transform 0.2s, box-shadow 0.2s; /* Smooth transition for hover effects */
+  cursor: pointer; /* Pointer cursor on hover */
+  overflow: hidden; /* Ensure content doesn't overflow */
+}
+
+.pokemonCard img {
+  width: 100%; /* Make the image take the full width of the card */
+  height: auto; /* Maintain the aspect ratio */
+  border-bottom: 2px solid #3d7dca; /* Border at the bottom of the image */
+  border-radius: 8px 8px 0 0; /* Rounded corners only at the top */
+  margin-bottom: 10px; /* Space between image and text */
+}
+
+.pokemonCard:hover {
+  transform: translateY(-5px); /* Move card up slightly on hover */
+  box-shadow: 4px 8px 15px rgba(0, 0, 0, 0.2); /* Slightly stronger shadow on hover */
+}
+
+
+
