@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import PokemonModal from "./Components/PokemonModal";
 
     const pokemonDex = [
       {
@@ -67,7 +68,7 @@ import { useState } from "react";
   /* 
     [✅] - create layouts (Components...)
       [✅] - have dummy poke info 
-    [] - create state for pokemon datas
+    [✅] - create state for pokemon datas
     [] - create state for favorite pokemons
     [] - create sideEffect for pokemons to load
        - 
@@ -76,15 +77,74 @@ import { useState } from "react";
   */
 export default function App(){
   const [pokemonList, setPokemonList] = useState(pokemonDex);
+  const [modal, setModal] = useState(false);
+  const [selectedPokemon, setSelectedPokemon] = useState();
+ const [favoritePokemon, setFavoritePokemon] = useState(() => {
+  const storedFavorites = localStorage.getItem('likedPokemons');
+  return storedFavorites ? JSON.parse(storedFavorites) : [];
+});
+
+  const [isLiked, setIsLiked] = useState(() => JSON.parse(localStorage.getItem("isLiked")) || {});
+  const [page, setPage] = useState("home");
+
+function handleLikedPokemon(pokemon) {
+  const isCurrentlyLiked = isLiked[pokemon.id] || false;
+  const newIsLiked = { ...isLiked, [pokemon.id]: !isCurrentlyLiked };
+
+  setIsLiked(newIsLiked);
+  localStorage.setItem('isLiked', JSON.stringify(newIsLiked));
+    if (!isCurrentlyLiked) {
+      // If not liked, add it to favorites
+      const likedPokemons = [...favoritePokemon, selectedPokemon]
+      setFavoritePokemon(likedPokemons);
+      localStorage.setItem("likedPokemons", JSON.stringify(likedPokemons));
+    } else {
+      // If already liked, remove it from favorites
+      const updatedPokemons = favoritePokemon.filter(favPokemon => favPokemon.id !== selectedPokemon.id);
+      setFavoritePokemon(updatedPokemons);
+      localStorage.setItem("likedPokemons", updatedPokemons);
+    }
+  }
+  
+  function handleModalToggle(pokemon = null) {
+    setSelectedPokemon(pokemon);
+    setModal(!modal);
+  }
+  
   return (
     <>
       <Header>
-        <h1 className="logo">PokeDex</h1>
-      </Header> 
+          <h1 className="logo">PokeDex</h1>
+        </Header> 
 
-      <NavBar />
-      <Main pokemonDex={pokemonList} />
-     
+        <NavBar setPage={setPage} />
+    { page === "home" ?
+      <>
+        <Main pokemonDex={pokemonList} modal={modal} onModalToggle={handleModalToggle} />
+        {
+          modal && selectedPokemon && 
+          <Pokemon 
+              pokemon={selectedPokemon} 
+              onModalToggle={handleModalToggle} 
+              isLiked={isLiked[selectedPokemon.id]} 
+              onLikedPokemon={() => handleLikedPokemon(selectedPokemon)}
+          />
+        }
+      </>
+      : 
+      <>
+        <FavoritePokemon favoritePokemon={favoritePokemon} modal={modal} onModalToggle={handleModalToggle}/>
+        {
+          modal && selectedPokemon && 
+          <Pokemon 
+              pokemon={selectedPokemon} 
+              onModalToggle={handleModalToggle} 
+              isLiked={isLiked[selectedPokemon.id]} 
+              onLikedPokemon={() => handleLikedPokemon(selectedPokemon)}
+          />
+        }
+      </>
+    }
     </>
   )
 }
@@ -101,48 +161,91 @@ export default function App(){
   
   
   
-  function NavBar(){
+  function NavBar({setPage}){
     // includes Home/Favorite/
+
+    function changePage(page) {
+      setPage(page);
+    }
     return (
       <div className="navbar">
           <ul>
-            <li>Home</li>
-            <li>Favorite</li>
+            <li onClick={() => changePage("home")}>Home</li>
+            <li onClick={() => changePage("favorite")}>Favorite Pokemon</li>
           </ul>
       </div>
     )
 
   }
-  function Main({pokemonDex}){
+  function Main({pokemonDex, modal, onModalToggle}){
     // includes the Pokemon Component
 
     return (
       <div className="main">
         <div className="pokemonList">
          {pokemonDex.map(pokemon => (
-            <PokemonList key={pokemon.id} pokemons={pokemon}/>
+            <PokemonList key={pokemon.id} pokemons={pokemon} onModalToggle={() => onModalToggle(pokemon)}/>
           ))}
         </div>
-          {/* or <FavoritePokemon /> */}
       </div>
     )
   }
 
 
 // FUNCTIONABILITY
-  function PokemonList({pokemons}) {
+  function PokemonList({pokemons, onModalToggle}) {
     // Load List of Pokemons here
-    console.log(pokemons);
     return (
-        <div className="pokemonCard">
+      <>
+        <div className="pokemonCard" onClick={onModalToggle}>
           <img src={pokemons.image} alt={pokemons.name} />
           {pokemons.name}
         </div>
+        
+      </>
     )
   }
 
-  // function Pokemon () {
+  function Pokemon ({pokemon, onModalToggle, onLikedPokemon, isLiked}) {
     // Loads particular pokemon
-  // }
+    return (
+      <PokemonModal 
+        pokemon={pokemon} 
+        onModalToggle={onModalToggle} 
+        isLiked={isLiked} 
+        onLikedPokemon={onLikedPokemon} 
+      />
+    );
+  }
 
-  // function FavoritePokemon{} }
+  function FavoritePokemon({favoritePokemon, onModalToggle}) {  
+    return (
+      <div className="main">
+        { favoritePokemon.length > 0 && favoritePokemon ?
+          <div className="pokemonList">
+          {favoritePokemon.map(pokemon => 
+            <FavoritePokemonList 
+              key={pokemon.id}  // Ensure each item has a unique key
+              pokemons={pokemon} 
+              onModalToggle={() => onModalToggle(pokemon)}  // Pass a callback function
+            />
+          )}
+        </div>
+        : 
+        <div className="empty">
+          <h1 className="logo">Such empty! <span>Go Home!</span></h1>
+        </div>
+        }
+      </div>
+    )
+  }
+  function FavoritePokemonList({pokemons, onModalToggle}){
+    return (
+      <div className="pokemonCard" onClick={onModalToggle}>
+      <img src={pokemons.image} alt={pokemons.name} />
+      {pokemons.name}
+    </div>
+    )
+  } 
+
+
