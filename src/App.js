@@ -1,93 +1,58 @@
 import { useState, useEffect } from "react";
 import PokemonModal from "./Components/PokemonModal";
 
-    const pokemonDex = [
-      {
-        id: 1,
-        name: "Bulbasaur",
-        type: ["Grass", "Poison"],
-        image: "https://img.pokemondb.net/artwork/bulbasaur.jpg"
-      },
-      {
-        id: 2,
-        name: "Ivysaur",
-        type: ["Grass", "Poison"],
-        image: "https://img.pokemondb.net/artwork/ivysaur.jpg"
-      },
-      {
-        id: 3,
-        name: "Venusaur",
-        type: ["Grass", "Poison"],
-        image: "https://img.pokemondb.net/artwork/venusaur.jpg"
-      },
-      {
-        id: 4,
-        name: "Charmander",
-        type: ["Fire"],
-        image: "https://img.pokemondb.net/artwork/charmander.jpg"
-      },
-      {
-        id: 5,
-        name: "Charmeleon",
-        type: ["Fire"],
-        image: "https://img.pokemondb.net/artwork/charmeleon.jpg"
-      },
-      {
-        id: 6,
-        name: "Charizard",
-        type: ["Fire", "Flying"],
-        image: "https://img.pokemondb.net/artwork/charizard.jpg"
-      },
-      {
-        id: 7,
-        name: "Squirtle",
-        type: ["Water"],
-        image: "https://img.pokemondb.net/artwork/squirtle.jpg"
-      },
-      {
-        id: 8,
-        name: "Wartortle",
-        type: ["Water"],
-        image: "https://img.pokemondb.net/artwork/wartortle.jpg"
-      },
-      {
-        id: 9,
-        name: "Blastoise",
-        type: ["Water"],
-        image: "https://img.pokemondb.net/artwork/blastoise.jpg"
-      },
-      {
-        id: 10,
-        name: "Pidgey",
-        type: ["Normal", "Flying"],
-        image: "https://img.pokemondb.net/artwork/pidgey.jpg"
-      }
-    ];
-
     // POKEDEX
   /* 
     [✅] - create layouts (Components...)
       [✅] - have dummy poke info 
     [✅] - create state for pokemon datas
-    [] - create state for favorite pokemons
-    [] - create sideEffect for pokemons to load
+    [✅] - create state for favorite pokemons
+    [] - create sideEffect for pokemonAPI to load
        - 
     [] - 
   
   */
 export default function App(){
-  const [pokemonList, setPokemonList] = useState(pokemonDex);
+  const [pokemonList, setPokemonList] = useState([]);
   const [modal, setModal] = useState(false);
   const [selectedPokemon, setSelectedPokemon] = useState();
- const [favoritePokemon, setFavoritePokemon] = useState(() => {
+  const [favoritePokemon, setFavoritePokemon] = useState(() => {
   const storedFavorites = localStorage.getItem('likedPokemons');
   return storedFavorites ? JSON.parse(storedFavorites) : [];
 });
 
+
   const [isLiked, setIsLiked] = useState(() => JSON.parse(localStorage.getItem("isLiked")) || {});
   const [page, setPage] = useState("home");
 
-function handleLikedPokemon(pokemon) {
+  useEffect(() => {
+    async function fetchPokemon() {
+      try {
+        const res = await fetch('https://pokeapi.co/api/v2/pokemon?limit=30&offset=0');
+        const data = await res.json();
+        // Call fetchPokemonDetails for each Pokémon URL
+        const details = await Promise.all(data.results.map(pokemon => fetchPokemonDetails(pokemon.url)));
+        setPokemonList(details);
+      } catch (error) {
+        console.error(error.message);
+      }
+    }
+
+    async function fetchPokemonDetails(url) {
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        console.log(data.types);
+        return {id: data.id, name: data.species.name, img: data.sprites.front_default, stats: data.stats, types: data.types}; // Return the data from the individual Pokémon fetch
+      } catch (error) {
+        console.error(error.message);
+        return null; // Return null or some default value in case of an error
+      }
+    }
+    fetchPokemon();
+  }, []);
+
+  function handleLikedPokemon(pokemon) {
   const isCurrentlyLiked = isLiked[pokemon.id] || false;
   const newIsLiked = { ...isLiked, [pokemon.id]: !isCurrentlyLiked };
 
@@ -110,7 +75,10 @@ function handleLikedPokemon(pokemon) {
     setSelectedPokemon(pokemon);
     setModal(!modal);
   }
-  
+
+  function handleSetPage(){
+    setPage("home");
+  }
   return (
     <>
       <Header>
@@ -133,7 +101,7 @@ function handleLikedPokemon(pokemon) {
       </>
       : 
       <>
-        <FavoritePokemon favoritePokemon={favoritePokemon} modal={modal} onModalToggle={handleModalToggle}/>
+        <FavoritePokemon favoritePokemon={favoritePokemon} modal={modal} onModalToggle={handleModalToggle} onSetPage={handleSetPage}/>
         {
           modal && selectedPokemon && 
           <Pokemon 
@@ -159,8 +127,6 @@ function handleLikedPokemon(pokemon) {
     )
   }
   
-  
-  
   function NavBar({setPage}){
     // includes Home/Favorite/
 
@@ -179,13 +145,14 @@ function handleLikedPokemon(pokemon) {
   }
   function Main({pokemonDex, modal, onModalToggle}){
     // includes the Pokemon Component
-
+    console.log(pokemonDex);
     return (
       <div className="main">
         <div className="pokemonList">
          {pokemonDex.map(pokemon => (
             <PokemonList key={pokemon.id} pokemons={pokemon} onModalToggle={() => onModalToggle(pokemon)}/>
           ))}
+
         </div>
       </div>
     )
@@ -198,10 +165,9 @@ function handleLikedPokemon(pokemon) {
     return (
       <>
         <div className="pokemonCard" onClick={onModalToggle}>
-          <img src={pokemons.image} alt={pokemons.name} />
-          {pokemons.name}
+          <img src={pokemons.img} alt={pokemons.name} />
+          {pokemons.name.charAt(0).toUpperCase() + pokemons.name.slice(1).toLowerCase()}
         </div>
-        
       </>
     )
   }
@@ -218,7 +184,7 @@ function handleLikedPokemon(pokemon) {
     );
   }
 
-  function FavoritePokemon({favoritePokemon, onModalToggle}) {  
+  function FavoritePokemon({favoritePokemon, onModalToggle, onSetPage}) {  
     return (
       <div className="main">
         { favoritePokemon.length > 0 && favoritePokemon ?
@@ -233,19 +199,17 @@ function handleLikedPokemon(pokemon) {
         </div>
         : 
         <div className="empty">
-          <h1 className="logo">Such empty! <span>Go Home!</span></h1>
+          <h1 className="logo">Such empty! <span onClick={onSetPage}>Go Home!</span></h1>
         </div>
         }
       </div>
     )
   }
-  function FavoritePokemonList({pokemons, onModalToggle}){
+  function FavoritePokemonList({pokemons, onModalToggle}) {
     return (
       <div className="pokemonCard" onClick={onModalToggle}>
-      <img src={pokemons.image} alt={pokemons.name} />
+      <img src={pokemons.img} alt={pokemons.name} />
       {pokemons.name}
     </div>
     )
-  } 
-
-
+  }
